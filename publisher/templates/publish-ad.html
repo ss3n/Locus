@@ -4,6 +4,8 @@
     <title>Hello from Flask</title>
     <meta name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,width=device-width,height=device-height,target-densitydpi=device-dpi,user-scalable=yes" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <style>
 
     </style>
@@ -11,7 +13,7 @@
     <body>
         <div class="row">
             <div class="col-xs-offset-1 col-xs-10 col-md-offset-3 col-md-6 text-center">
-                <h1>Publish an advertisement!</h1>
+                <h1 style="text-align:center">Publish an advertisement!</h1>
             </div>
         </div>
         <div class="row">
@@ -27,15 +29,11 @@
                       <label>Topic</label>
                       <br>
                       <div class="btn-toolbar" data-toggle="buttons">
-                          <label class="btn btn-info">
-                              <input type="checkbox" checked autocomplete="off"> Food
-                          </label>
-                          <label class="btn btn-info active">
-                            <input type="checkbox" autocomplete="off"> Gas
-                          </label>
-                          <label class="btn btn-info">
-                            <input type="checkbox" autocomplete="off"> Bar
-                          </label>
+                          {% for topic in topiclist %}
+                            <label class="btn btn-info">
+                                <input type="checkbox" autocomplete="off"> {{ topic }}
+                            </label>
+                          {% endfor %}
                       </div>
                   </div>
                   <div class="form-group">
@@ -46,11 +44,5 @@
                 </form>
             </div>
         </div>
-    <!--{% if name %}
-      <h1>Hello {{ name }}!</h1>
-    {% else %}
-      <h1>Hello World!</h1>
-    {% endif %}-->
-
     </body>
 </html>
