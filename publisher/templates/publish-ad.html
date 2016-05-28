@@ -7,7 +7,24 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <style>
+        .modal {
+          text-align: center;
+          padding: 0!important;
+        }
 
+        .modal:before {
+          content: '';
+          display: inline-block;
+          height: 100%;
+          vertical-align: middle;
+          margin-right: -4px; /* Adjusts for spacing */
+        }
+
+        .modal-dialog {
+          display: inline-block;
+          text-align: left;
+          vertical-align: middle;
+        }
     </style>
 </head>
     <body>
@@ -24,25 +41,75 @@
 
         <div class="row">
             <div class="col-xs-offset-1 col-xs-10 col-md-offset-4 col-md-4">
-                <form>
+                <form method="POST" role="form">
                   <div class="form-group">
                       <label>Topic</label>
                       <br>
-                      <div class="btn-toolbar" data-toggle="buttons">
+                      <div class="btn-toolbar" data-toggle="buttons" id="topiccheckboxes">
                           {% for topic in topiclist %}
                             <label class="btn btn-info">
-                                <input type="checkbox" autocomplete="off"> {{ topic }}
+                                <input type="checkbox" name="adcat" value="{{ topic }}" autocomplete="off"> {{ topic }}
                             </label>
                           {% endfor %}
                       </div>
                   </div>
                   <div class="form-group">
                         <label>Advertisement Content</label>
-                        <textarea class="form-control" rows="3" placeholder="Content"></textarea>
+                        <textarea class="form-control" rows="3" placeholder="Content" name="content" id="adtextarea"></textarea>
                   </div>
-                  <button type="submit" class="btn btn-default">Submit</button>
+                  <button type="submit" class="btn btn-default" data-toggle="modal" data-target="myModal">Submit</button>
                 </form>
+
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">Advertisement Published!</h4>
+                      </div>
+                      <div class="modal-body">
+                          <div class="row">
+                              <div class="col-md-8">
+                                    <h4>Content</h4>
+                                    <p id="adc"></p>
+                              </div>
+                              <div class="col-md-4">
+                                  <h4>Topics</h4>
+                                  <p id="selectedtopics"></p>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" id="btnpublished" class="btn btn-primary" onclick="javascript:window.location.reload()" data-dismiss="modal">Publish Another!</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
             </div>
         </div>
+    <script>
+
+          $("form").submit(function(e){
+            e.preventDefault();
+            $.ajax({
+                type : 'POST',
+                data: $("form").serialize(),
+                success : function(data){
+                    console.log(data);
+                    var adText = $("#adtextarea").val();
+                    var topics = [];
+                    $("#topiccheckboxes input:checked").each(function(){
+                        topics.push($(this).attr('value'));
+                    });
+                    $("#adc").text(adText);
+                    $("#selectedtopics").text(topics.join(", "));
+                    $("#myModal").modal("show");
+                }
+            });
+            return false;
+        });
+    </script>
     </body>
 </html>
