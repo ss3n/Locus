@@ -11,7 +11,7 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/publish/', methods=['GET', 'POST'])
+@app.route('/publish/', methods=['POST'])
 def publish():
     ad = json.loads(request.get_json())
     topics = ad['topiclist']
@@ -24,11 +24,10 @@ def publish():
     return 'PUBLISHED!'
 
 
-# @app.route('/subscribe/', methods=['GET'])
-# def subscribe():
-#     topic = request.form['topic']
-#     subscription = KafkaAPI.subscribe(topic)
-#     return subscription
+@app.route('/subscribe/', methods=['POST'])
+def subscribe():
+    interests = json.laods(request.get_json())['interestlist']
+    KafkaAPI.subscribe(interests)
 
 
 if __name__ == '__main__':

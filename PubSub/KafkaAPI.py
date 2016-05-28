@@ -10,5 +10,5 @@ def publish(topics, message, host='localhost', port=9092):
 
 def subscribe(topic, host='localhost', port=9092):
     server = host+':'+str(port)
-    subscription = KafkaConsumer(topic, bootstrap_servers=server, group_id=None, auto_offset_reset='earliest')
-    return subscription
+    subscriber = KafkaConsumer(bootstrap_servers=server, group_id=None, auto_offset_reset='earliest')
+    # store subscriber instance in a dictionary with key as subscriber id
