@@ -23,29 +23,31 @@ def index():
 
 @socketio.on('connect')
 def handle_connect():
-    '''
+    """
     New connection handler that adds a client to the room list
     :return:
-    '''
+    """
     app.logger.debug('Got a client in room: ' + str(request.sid))
     sidlist.append(request.sid)
 
+
 @socketio.on('disconnect')
 def handle_disconnect():
-    '''
+    """
     Disconnect handler that removes the client from the room list
     :return:
-    '''
+    """
     app.logger.debug('Removing the room: ' + str(request.sid))
     sidlist.remove(request.sid)
 
+
 @socketio.on('client-message')
 def handle_client_message(msg):
-    '''
+    """
     Custom event name example
     :param msg:
     :return:
-    '''
+    """
     # emit message on server-message channel and set a callback for handling delivery
     emit('server-message', ('lele', 'theeke'), callback=ack)
     app.logger.debug('Client message received: ' + msg)
@@ -54,18 +56,19 @@ def handle_client_message(msg):
 
 
 def ack():
-    '''
+    """
     Callback for acknowledging whether
     client received the message or not
     :return:
-    '''
+    """
     print "ack"
 
+
 def messenger():
-    '''
+    """
     Simple stupid test
     :return:
-    '''
+    """
     for i in range(0,100):
         if len(sidlist) > 0:
             idx = i % len(sidlist)
@@ -76,6 +79,6 @@ def messenger():
 
 
 if __name__=='__main__':
-    app.debug=True
+    app.debug = True
     thread.start_new_thread(messenger, ())
     socketio.run(app, host="0.0.0.0", port=5200)

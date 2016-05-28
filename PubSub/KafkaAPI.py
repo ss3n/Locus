@@ -8,7 +8,8 @@ def publish(topics, message, host='localhost', port=9092):
         publisher.send(topic, message.encode('utf-8'))
 
 
-def subscribe(topic, host='localhost', port=9092):
+def subscribe(interests, host='localhost', port=9092):
     server = host+':'+str(port)
-    subscriber = KafkaConsumer(bootstrap_servers=server, group_id=None, auto_offset_reset='earliest')
+    subscription = KafkaConsumer(interests, bootstrap_servers=server, group_id=None, auto_offset_reset='earliest')
+    return subscription
     # store subscriber instance in a dictionary with key as subscriber id
