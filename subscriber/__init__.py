@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from time import sleep
+import requests
 import thread
+import json
 
 __author__ = 'udaymittal'
 
@@ -15,10 +17,27 @@ socketio = SocketIO(app, async_mode='threading')
 # can be used. (request.sid)
 
 sidlist = []
+lookupaddr = 'http://0.0.0.0:5000'
 
-@app.route('/')
+@app.route('/subscribe', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    if request.method == 'GET':
+        latitude = request.args.get('lat')
+        longitude = request.args.get('lon')
+        r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
+        publishregion = r.content
+        app.logger.debug("Region of publisher: " + str(publishregion))
+
+        # request for list of available topics
+        r = requests.get(lookupaddr+'/topiclist')
+        topiclist = json.loads(r.content)
+
+        return render_template('index.html', topiclist=topiclist)
+    else:
+        selectedtopics = request.form.getlist('adcat')
+
+        return "published"
+
 
 
 @socketio.on('connect')
@@ -77,5 +96,6 @@ def messenger():
 
 if __name__=='__main__':
     app.debug=True
-    thread.start_new_thread(messenger, ())
+    #thread.start_new_thread(messenger, ())
+
     socketio.run(app, host="0.0.0.0", port=5200)
