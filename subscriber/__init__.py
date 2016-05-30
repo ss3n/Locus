@@ -32,7 +32,7 @@ def index():
         r = requests.get(lookupaddr+'/topiclist')
         topiclist = json.loads(r.content)
 
-        return render_template('index.html', topiclist=topiclist)
+        return render_template('subscribe-ad.html', topiclist=topiclist)
     else:
         selectedtopics = request.form.getlist('adcat')
 
