@@ -1,15 +1,71 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, send
-from time import sleep
-import requests
-import thread
-import json
 
 __author__ = 'udaymittal'
 
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
+from threading import Thread
+from flask import Flask, render_template, request
+import requests
+import json
+
+
+
+
+
+# Set this variable to "threading", "eventlet" or "gevent" to test the
+# different async modes, or leave it set to None for the application to choose
+# the best option based on available packages.
+async_mode = None
+
+if async_mode is None:
+    try:
+        import eventlet
+        async_mode = 'eventlet'
+    except ImportError:
+        pass
+
+    if async_mode is None:
+        try:
+            from gevent import monkey
+            async_mode = 'gevent'
+        except ImportError:
+            pass
+
+    if async_mode is None:
+        async_mode = 'threading'
+
+    print('async_mode is ' + async_mode)
+
+# monkey patching is necessary because this application uses a background
+# thread
+if async_mode == 'eventlet':
+    import eventlet
+    eventlet.monkey_patch()
+elif async_mode == 'gevent':
+    from gevent import monkey
+    monkey.patch_all()
+
+from time import sleep
+
+
 
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='threading')
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+
+
+def messenger():
+    '''
+    Simple stupid test
+    :return:
+    '''
+    for i in range(0,100):
+        if len(sidlist) > 0:
+            idx = i % len(sidlist)
+            app.logger.info('Sending message to client in room: ' + str(sidlist[idx]))
+            socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)}, room=sidlist[idx])
+        app.logger.info('Messenger in iteration: ' + str(i))
+        sleep(5)
 
 # All clients are assigned a room when they connect, named with the
 # session ID of the connection, which can be obtained from request.sid
@@ -19,8 +75,13 @@ socketio = SocketIO(app, async_mode='threading')
 sidlist = []
 lookupaddr = 'http://0.0.0.0:5000'
 
-@app.route('/subscribe', methods=['GET', 'POST'])
+@app.route('/subscribe/', methods=['GET', 'POST'])
 def index():
+    global thread
+    if thread is None:
+        thread = Thread(target=messenger)
+        thread.daemon = True
+        thread.start()
     if request.method == 'GET':
         latitude = request.args.get('lat')
         longitude = request.args.get('lon')
@@ -58,44 +119,9 @@ def handle_disconnect():
     app.logger.debug('Removing the room: ' + str(request.sid))
     sidlist.remove(request.sid)
 
-@socketio.on('client-message')
-def handle_client_message(msg):
-    '''
-    Custom event name example
-    :param msg:
-    :return:
-    '''
-    # emit message on server-message channel and set a callback for handling delivery
-    emit('server-message', ('lele', 'theeke'), callback=ack)
-    app.logger.debug('Client message received: ' + msg)
-    # return acknowledgement: can be processed as args i client callback
-    return 'got it', 'carry on'
-
-
-def ack():
-    '''
-    Callback for acknowledging whether
-    client received the message or not
-    :return:
-    '''
-    print "ack"
-
-def messenger():
-    '''
-    Simple stupid test
-    :return:
-    '''
-    for i in range(0,100):
-        if len(sidlist) > 0:
-            idx = i % len(sidlist)
-            app.logger.info('Sending message to client in room: ' + str(sidlist[idx]))
-            socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)}, room=sidlist[idx])
-        app.logger.info('Messenger in iteration: ' + str(i))
-        sleep(5)
 
 
 if __name__=='__main__':
-    app.debug=True
     #thread.start_new_thread(messenger, ())
-
-    socketio.run(app, host="0.0.0.0", port=5200)
+    app.debug = True
+    socketio.run(app, port=5200)
