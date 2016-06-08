@@ -95,8 +95,12 @@
 
     </div>
     <script>
+        var sessionId = null;
         $(document).ready(function(){
             var socket = io.connect();
+            socket.on('connect', function() {
+                sessionId = socket.io.engine.id;
+            });
             socket.on('server-message', function(msg) {
                 console.log('got a server message');
                 $('#log').append('<p>Received: ' + msg.data + '</p>');
@@ -108,6 +112,10 @@
             e.preventDefault();
             $.ajax({
                 type : 'POST',
+                beforeSend: function(request){
+                    request.setRequestHeader("sid", sessionId);
+                    console.log(sessionId);
+                },
                 data: $("form").serialize(),
                 success : function(data){
                     console.log(data);
