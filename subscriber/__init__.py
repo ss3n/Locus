@@ -16,6 +16,16 @@ socketio = SocketIO(app, async_mode='threading')
 # Therefore to address a message to a single client, the session ID of the client
 # can be used. (request.sid)
 
+# client dictionary has the following structure:
+#   key: sid
+#       key: interest
+#           key: region value: [status, offset]
+#           key: region value: [status, offset]
+#       key: interest
+#           ...
+#       ...
+#   ...
+
 lock = Lock()
 client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
@@ -29,17 +39,39 @@ def index():
         return render_template('index.html', topiclist=topiclist)
 
     else:
-        selectedtopics = request.form.getlist('adcat')
-        print selectedtopics
-        return "subscribed!"
+        with lock:
+            interest_list = request.form.getlist('adcat')
+            sid = str(request.sid)
+            client_dict[sid] = dict()
+            for interest in interest_list:
+                client_dict[sid][str(interest)] = dict()
+            print interest_list
+            return "subscribed!"
 
-@app.route('/region')
+
+@app.route('/region/')
 def get_region_polygon():
-    latitude = request.args.get('lat')
-    longitude = request.args.get('lon')
-    r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
-    publishregion = r.content
-    app.logger.debug("Region of publisher: " + str(publishregion))
+    with lock:
+        latitude = request.args.get('lat')
+        longitude = request.args.get('lon')
+        r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
+        publishregion = r.content
+        app.logger.debug("Region of publisher: " + str(publishregion))
+
+        sid = str(request.sid)
+        interest_list = client_dict[sid].keys()
+        for interest in interest_list:
+            regions = client_dict[sid][interest].keys()
+            new_region_exists = False
+            for region in regions:
+                if region == publishregion:
+                    new_region_exists = True
+                    client_dict[sid][interest][region][0] = True
+                else:
+                    client_dict[sid][interest][region][0] = False
+                if not new_region_exists:
+                    client_dict[sid][interest][publishregion] = [True, 0]
+
     return "region-polygon not yet implemented. But got your region"
 
 
@@ -49,10 +81,11 @@ def handle_connect():
     New connection handler that adds a client to the room list
     :return:
     """
-    with lock:
-        app.logger.debug('Got a client in room: ' + str(request.sid))
-        sid = str(request.sid)
-        # client_dict[sid] = list()
+    app.logger.debug('Got a client in room: ' + str(request.sid))
+    # with lock:
+    #     app.logger.debug('Got a client in room: ' + str(request.sid))
+    #     sid = str(request.sid)
+    #     # client_dict[sid] = list()
 
 
 @socketio.on('disconnect')
@@ -62,8 +95,8 @@ def handle_disconnect():
     :return:
     """
     with lock:
-        app.logger.debug('Removing the room: ' + str(request.sid))
-        # client_dict.pop(request.sid)
+        sid = str(request.sid)
+        client_dict.pop(sid)
 
 
 @socketio.on('client-message')
