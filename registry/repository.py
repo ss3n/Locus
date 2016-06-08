@@ -18,5 +18,8 @@ def get_region_name(longitude, latitude):
     '''
     point = 'POINT(' + str(longitude) + ' ' + str(latitude) + ')'
     query = session.query(Region).filter(func.ST_Contains(Region.regionboundary, point)).first()
-    return query.name
+    if query is None:
+        return "Region not found"
+    else:
+        return query.name
 
