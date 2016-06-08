@@ -39,8 +39,8 @@ def publish():
 
         app.logger.debug(json.dumps(ad.__dict__))
 
-        #r = requests.post(kafkadrr, json=json.dumps(ad.__dict__))
-        #return r.content
+        # r = requests.post(kafkadrr, json=json.dumps(ad.__dict__))
+        # return r.content
         return "published"
 
 

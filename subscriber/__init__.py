@@ -29,6 +29,28 @@ socketio = SocketIO(app, async_mode='threading')
 lock = Lock()
 client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
+kafkadrr = 'http://192.168.0.38:5000/publish/'
+
+
+def collect_topics():
+    topic_dict = dict()
+    for sid in client_dict.keys():
+        for interest in client_dict[sid].keys():
+            for region in client_dict[sid][interest].keys():
+                if client_dict[sid][interest][region][0]:
+                    topic = interest + '*' + region
+                    try:
+                        if client_dict[sid][interest][region][1] < topic_dict[topic]:
+                            topic_dict[topic] = client_dict[sid][interest][region][1]
+                    except KeyError:
+                        topic_dict[topic] = client_dict[sid][interest][region][1]
+    return topic_dict
+
+
+def poll_topics():
+    topic_dict = collect_topics()
+    ads = requests.post(kafkadrr, json=json.dumps(topic_dict))
+    return ads
 
 
 @app.route('/subscribe/', methods=['GET', 'POST'])
@@ -64,13 +86,13 @@ def get_region_polygon():
             regions = client_dict[sid][interest].keys()
             new_region_exists = False
             for region in regions:
-                if region == publishregion:
+                if region == publishregion.name:
                     new_region_exists = True
                     client_dict[sid][interest][region][0] = True
                 else:
                     client_dict[sid][interest][region][0] = False
                 if not new_region_exists:
-                    client_dict[sid][interest][publishregion] = [True, 0]
+                    client_dict[sid][interest][publishregion.name] = [True, 0]
 
     return "region-polygon not yet implemented. But got your region"
 
