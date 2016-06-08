@@ -1,5 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, func
+from shapely import wkb
+from shapely.geometry import mapping
 from models import Region
 
 __author__ = 'udaymittal'
@@ -21,5 +23,5 @@ def get_region_name(longitude, latitude):
     if query is None:
         return "Region not found"
     else:
-        return query.name
+        return {"name": query.name, "polygon": mapping(wkb.loads(bytes(query.regionboundary.data)))['coordinates']}
 
