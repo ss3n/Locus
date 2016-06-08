@@ -53,6 +53,37 @@ def poll_topics():
     return ads
 
 
+def messenger():
+    while True:
+        sleep(60 * 5)
+        msgs = poll_topics()
+        ads = dict()
+        for msg in msgs:
+            topic = msg.topic
+            offset = msg.offset
+            ad = msg.value
+            try:
+                ads[topic][offset] = ad
+            except KeyError:
+                ads[topic] = dict
+                ads[topic][offset] = ad
+
+        for sid in client_dict.keys():
+            interest_list = client_dict[sid].keys()
+            for interest in interest_list:
+                regions = client_dict[sid][interest].keys()
+                for region in regions:
+                    if client_dict[sid][interest][region][0]:
+                        offset = client_dict[sid][interest][region][1]
+                        while True:
+                            try:
+                                ad = ads[interest+'*'+region][offset]
+                                socketio.emit('server-message', ad, room=sid)
+                                offset += 1
+                            except KeyError:
+                                break
+
+
 @app.route('/subscribe/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
@@ -121,10 +152,13 @@ def handle_disconnect():
     :return:
     """
     app.debug("Client disconnected: " + str(request.sid))
-    '''with lock:
+    with lock:
         sid = str(request.sid)
-        client_dict.pop(sid)
-    '''
+        try:
+            client_dict.pop(sid)
+        except KeyError:
+            pass
+
 
 @socketio.on('client-message')
 def handle_client_message(msg):
@@ -164,8 +198,8 @@ def ack():
 
 
 if __name__ == '__main__':
-    app.debug=True
-    # thread = Thread(messenger, ())
-    # thread.start()
+    app.debug = True
+    thread = Thread(messenger, ())
+    thread.start()
 
     socketio.run(app, host="0.0.0.0", port=5200)
