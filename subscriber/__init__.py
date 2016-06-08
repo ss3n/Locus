@@ -63,6 +63,7 @@ kafkadrr = 'http://192.168.43.154:5000/poll/'
 
 def collect_topics():
     topic_dict = dict()
+    app.logger.debug("Inside Collected Topics - Number of connected clients: " + str(len(client_dict)))
     for sid in client_dict.keys():
         for interest in client_dict[sid].keys():
             for region in client_dict[sid][interest].keys():
@@ -73,20 +74,21 @@ def collect_topics():
                             topic_dict[topic] = client_dict[sid][interest][region][1]
                     except KeyError:
                         topic_dict[topic] = client_dict[sid][interest][region][1]
-    print topic_dict
+    app.logger.debug("Topic Dict: " + str(topic_dict))
     return topic_dict
 
 
 def poll_topics():
     topic_dict = collect_topics()
     ads = requests.post(kafkadrr, json=json.dumps(topic_dict))
-    print ads
-    return ads
+    app.logger.debug("Received Ads: " + str(ads.content))
+    return json.loads(ads.content)
 
 
 def messenger():
     while True:
         sleep(5)
+        app.logger.debug("Inside Messenger Iteration")
         msgs = poll_topics()
         ads = dict()
         for msg in msgs:
