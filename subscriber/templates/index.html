@@ -106,6 +106,7 @@
                 $('#log').append('<p>Received: ' + msg.data + '</p>');
                 $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.data+ '</div>');
             });
+
         });
 
         $("form").submit(function(e){
@@ -125,6 +126,19 @@
                     });
                     $("#selectedtopics").text(topics.join(", "));
                     $("#myModal").modal("show");
+                    $.ajax({
+                        url: "region",
+                        type: 'GET',
+                        beforeSend: function(request){
+                            request.setRequestHeader("sid", sessionId);
+                            console.log(sessionId);
+                            console.log("Sending GET request to region endpoint");
+                        },
+                        data: {lat:33.645175, lon:-117.842061},
+                        success: function(data){
+                            console.log(data);
+                        }
+                    });
                 }
             });
             return false;

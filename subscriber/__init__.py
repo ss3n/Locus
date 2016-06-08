@@ -71,7 +71,7 @@ def index():
             return "subscribed!"
 
 
-@app.route('/region/')
+@app.route('/subscribe/region')
 def get_region_polygon():
     with lock:
         latitude = request.args.get('lat')
