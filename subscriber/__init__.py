@@ -29,6 +29,7 @@ socketio = SocketIO(app, async_mode='threading')
 lock = Lock()
 client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
+kafkadrr = 'http://192.168.0.38:5000/publish/'
 
 
 def collect_topics():
@@ -44,6 +45,12 @@ def collect_topics():
                     except KeyError:
                         topic_dict[topic] = client_dict[sid][interest][region][1]
     return topic_dict
+
+
+def poll_topics():
+    topic_dict = collect_topics()
+    ads = requests.post(kafkadrr, json=json.dumps(topic_dict))
+    return ads
 
 
 @app.route('/subscribe/', methods=['GET', 'POST'])
