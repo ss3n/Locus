@@ -1,3 +1,31 @@
+async_mode = None
+
+if async_mode is None:
+    try:
+        import eventlet
+        async_mode = 'eventlet'
+    except ImportError:
+        pass
+
+    if async_mode is None:
+        try:
+            from gevent import monkey
+            async_mode = 'gevent'
+        except ImportError:
+            pass
+
+    if async_mode is None:
+        async_mode = 'threading'
+
+    print('async_mode is ' + async_mode)
+
+if async_mode == 'eventlet':
+    import eventlet
+    eventlet.monkey_patch()
+elif async_mode == 'gevent':
+    from gevent import monkey
+    monkey.patch_all()
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from time import sleep
@@ -7,9 +35,10 @@ import json
 
 __author__ = 'udaymittal'
 
-
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='threading')
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+
 
 # All clients are assigned a room when they connect, named with the
 # session ID of the connection, which can be obtained from request.sid
@@ -191,15 +220,16 @@ def ack():
 #     for i in range(0,100):
 #         if len(client_dict) > 0:
 #             idx = i % len(client_dict)
-#             app.logger.info('Sending message to client in room: ' + str(sidlist[idx]))
-#             socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)}, room=sidlist[idx])
+#             app.logger.info('Sending message to client in room: ')
+#             socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)})
 #         app.logger.info('Messenger in iteration: ' + str(i))
 #         sleep(5)
-
+#
 
 if __name__ == '__main__':
     app.debug = True
-    thread = Thread(messenger, ())
+    thread = Thread(target=messenger)
+    thread.daemon = True
     thread.start()
 
     socketio.run(app, host="0.0.0.0", port=5200)
