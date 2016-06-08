@@ -94,7 +94,8 @@ def get_region_polygon():
                 if not new_region_exists:
                     client_dict[sid][interest][publishregion.name] = [True, 0]
 
-    return "region-polygon not yet implemented. But got your region"
+    print client_dict
+    return publishregion.polygon
 
 
 @socketio.on('connect')
