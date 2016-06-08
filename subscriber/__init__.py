@@ -63,7 +63,7 @@ def index():
     else:
         with lock:
             interest_list = request.form.getlist('adcat')
-            sid = str(request.sid)
+            sid = str(request.headers.get('sid'))
             client_dict[sid] = dict()
             for interest in interest_list:
                 client_dict[sid][str(interest)] = dict()
@@ -80,7 +80,7 @@ def get_region_polygon():
         publishregion = r.content
         app.logger.debug("Region of publisher: " + str(publishregion))
 
-        sid = str(request.sid)
+        sid = str(request.headers.get('sid'))
         interest_list = client_dict[sid].keys()
         for interest in interest_list:
             regions = client_dict[sid][interest].keys()
