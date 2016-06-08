@@ -58,7 +58,7 @@ thread = None
 lock = Lock()
 client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
-kafkadrr = 'http://192.168.0.38:5000/publish/'
+kafkadrr = 'http://192.168.43.154:5000/poll/'
 
 
 def collect_topics():
@@ -67,7 +67,7 @@ def collect_topics():
         for interest in client_dict[sid].keys():
             for region in client_dict[sid][interest].keys():
                 if client_dict[sid][interest][region][0]:
-                    topic = interest + '*' + region
+                    topic = interest + '_' + region
                     try:
                         if client_dict[sid][interest][region][1] < topic_dict[topic]:
                             topic_dict[topic] = client_dict[sid][interest][region][1]
@@ -84,7 +84,7 @@ def poll_topics():
 
 def messenger():
     while True:
-        sleep(60 * 5)
+        sleep(5)
         msgs = poll_topics()
         ads = dict()
         for msg in msgs:
@@ -106,7 +106,7 @@ def messenger():
                         offset = client_dict[sid][interest][region][1]
                         while True:
                             try:
-                                ad = ads[interest+'*'+region][offset]
+                                ad = ads[interest+'_'+region][offset]
                                 socketio.emit('server-message', ad, room=sid)
                                 offset += 1
                             except KeyError:
@@ -138,6 +138,7 @@ def get_region_polygon():
         longitude = request.args.get('lon')
         r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
         publishregion = r.content
+        print publishregion
         publishregion = json.loads(publishregion)
         app.logger.debug("Region of publisher: " + str(publishregion))
         # print publishregion
@@ -180,7 +181,7 @@ def handle_disconnect():
     Disconnect handler that removes the client from the room list
     :return:
     """
-    app.debug("Client disconnected: " + str(request.sid))
+    app.logger.debug("Client disconnected: " + str(request.sid))
     with lock:
         sid = str(request.sid)
         try:

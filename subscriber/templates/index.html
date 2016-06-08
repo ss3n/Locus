@@ -103,7 +103,7 @@
             });
             socket.on('server-message', function(msg) {
                 console.log('got a server message');
-                $('#log').append('<p>Received: ' + msg.data + '</p>');
+                $('#log').append('<p>Received: ' + msg + '</p>');
                 $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.data+ '</div>');
             });
 
