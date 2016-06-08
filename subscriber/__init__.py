@@ -91,15 +91,20 @@ def messenger():
         app.logger.debug("Inside Messenger Iteration")
         msgs = poll_topics()
         ads = dict()
-        for msg in msgs:
-            topic = msg.topic
-            offset = msg.offset
-            ad = msg.value
-            try:
+        for topic in msgs.keys():
+            all_msgs = msgs[topic]
+            ads[topic] = dict
+            for msg in all_msgs:
+                offset = msg[2]
+                ad = msg[-1]
                 ads[topic][offset] = ad
-            except KeyError:
-                ads[topic] = dict
-                ads[topic][offset] = ad
+            # offset = msg.offset
+            # ad = msg.value
+            # try:
+            #     ads[topic][offset] = ad
+            # except KeyError:
+            #     ads[topic] = dict
+            #     ads[topic][offset] = ad
 
         for sid in client_dict.keys():
             interest_list = client_dict[sid].keys()
