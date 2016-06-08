@@ -93,7 +93,7 @@ def messenger():
         ads = dict()
         for topic in msgs.keys():
             all_msgs = msgs[topic]
-            ads[topic] = dict
+            ads[topic] = dict()
             for msg in all_msgs:
                 offset = msg[2]
                 ad = msg[-1]
