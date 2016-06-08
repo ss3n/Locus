@@ -78,8 +78,11 @@ def get_region_polygon():
         longitude = request.args.get('lon')
         r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
         publishregion = r.content
+        publishregion = json.loads(publishregion)
         app.logger.debug("Region of publisher: " + str(publishregion))
-
+        # print publishregion
+        # print type(publishregion)
+        # print publishregion['name']
         sid = str(request.headers.get('sid'))
         interest_list = client_dict[sid].keys()
         for interest in interest_list:
@@ -91,11 +94,11 @@ def get_region_polygon():
                     client_dict[sid][interest][region][0] = True
                 else:
                     client_dict[sid][interest][region][0] = False
-                if not new_region_exists:
-                    client_dict[sid][interest][publishregion.name] = [True, 0]
+            if not new_region_exists:
+                client_dict[sid][interest][publishregion['name']] = [True, 0]
 
     print client_dict
-    return publishregion.polygon
+    return str(publishregion['polygon'])
 
 
 @socketio.on('connect')
@@ -117,10 +120,11 @@ def handle_disconnect():
     Disconnect handler that removes the client from the room list
     :return:
     """
-    with lock:
+    app.debug("Client disconnected: " + str(request.sid))
+    '''with lock:
         sid = str(request.sid)
         client_dict.pop(sid)
-
+    '''
 
 @socketio.on('client-message')
 def handle_client_message(msg):
