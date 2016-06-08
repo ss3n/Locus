@@ -27,10 +27,13 @@ def publish():
 @app.route('/poll/', methods=['POST'])
 def poll():
     topics = json.loads(request.get_json())
-    msgs = dict()
-    for topic, offset in topics.items():
+    msgs = {}
+    for topic in topics.keys():
+        offset = topics[topic]
         msgs[topic] = KafkaAPI.poll(topic, offset)
-    return topics
+    print msgs
+    return json.dumps(msgs)
+    # return app.response_class(msgs, content_type='application/json')
 
 
 if __name__ == '__main__':
