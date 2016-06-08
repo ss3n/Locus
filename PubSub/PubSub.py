@@ -31,7 +31,9 @@ def poll():
     for topic in topics.keys():
         offset = topics[topic]
         msgs[topic] = KafkaAPI.poll(topic, offset)
-    return app.response_class(topics, content_type='application/json')
+    print msgs
+    return json.dumps(msgs)
+    # return app.response_class(msgs, content_type='application/json')
 
 
 if __name__ == '__main__':
