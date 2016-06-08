@@ -103,19 +103,20 @@ def index():
 
 @socketio.on('connect')
 def handle_connect():
-    '''
+    """
     New connection handler that adds a client to the room list
     :return:
-    '''
+    """
     app.logger.debug('Got a client in room: ' + str(request.sid))
     sidlist.append(request.sid)
 
+
 @socketio.on('disconnect')
 def handle_disconnect():
-    '''
+    """
     Disconnect handler that removes the client from the room list
     :return:
-    '''
+    """
     app.logger.debug('Removing the room: ' + str(request.sid))
     sidlist.remove(request.sid)
 
