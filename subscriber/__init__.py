@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from time import sleep
 import requests
-import thread
+from threading import Thread, Lock
 import json
 
 __author__ = 'udaymittal'
@@ -16,10 +16,12 @@ socketio = SocketIO(app, async_mode='threading')
 # Therefore to address a message to a single client, the session ID of the client
 # can be used. (request.sid)
 
-sidlist = []
+lock = Lock()
+client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
 
-@app.route('/subscribe', methods=['GET', 'POST'])
+
+@app.route('/subscribe/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
         latitude = request.args.get('lat')
@@ -32,12 +34,11 @@ def index():
         r = requests.get(lookupaddr+'/topiclist')
         topiclist = json.loads(r.content)
 
-        return render_template('index.html', topiclist=topiclist)
+        return render_template('subscribe-ad.html', topiclist=topiclist)
+
     else:
         selectedtopics = request.form.getlist('adcat')
-
-        return "published"
-
+        return "subscribed!"
 
 
 @socketio.on('connect')
@@ -46,8 +47,10 @@ def handle_connect():
     New connection handler that adds a client to the room list
     :return:
     """
-    app.logger.debug('Got a client in room: ' + str(request.sid))
-    sidlist.append(request.sid)
+    with lock:
+        app.logger.debug('Got a client in room: ' + str(request.sid))
+        sid = str(request.sid)
+        # client_dict[sid] = list()
 
 
 @socketio.on('disconnect')
@@ -56,8 +59,9 @@ def handle_disconnect():
     Disconnect handler that removes the client from the room list
     :return:
     """
-    app.logger.debug('Removing the room: ' + str(request.sid))
-    sidlist.remove(request.sid)
+    with lock:
+        app.logger.debug('Removing the room: ' + str(request.sid))
+        # client_dict.pop(request.sid)
 
 
 @socketio.on('client-message')
@@ -83,22 +87,23 @@ def ack():
     print "ack"
 
 
-def messenger():
-    """
-    Simple stupid test
-    :return:
-    """
-    for i in range(0,100):
-        if len(sidlist) > 0:
-            idx = i % len(sidlist)
-            app.logger.info('Sending message to client in room: ' + str(sidlist[idx]))
-            socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)}, room=sidlist[idx])
-        app.logger.info('Messenger in iteration: ' + str(i))
-        sleep(5)
+# def messenger():
+#     """
+#     Simple stupid test
+#     :return:
+#     """
+#     for i in range(0,100):
+#         if len(client_dict) > 0:
+#             idx = i % len(client_dict)
+#             app.logger.info('Sending message to client in room: ' + str(sidlist[idx]))
+#             socketio.emit('server-message', {'data': 'Message sent at time: ' + str(i)}, room=sidlist[idx])
+#         app.logger.info('Messenger in iteration: ' + str(i))
+#         sleep(5)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     app.debug=True
-    #thread.start_new_thread(messenger, ())
+    # thread = Thread(messenger, ())
+    # thread.start()
 
     socketio.run(app, host="0.0.0.0", port=5200)
