@@ -73,12 +73,14 @@ def collect_topics():
                             topic_dict[topic] = client_dict[sid][interest][region][1]
                     except KeyError:
                         topic_dict[topic] = client_dict[sid][interest][region][1]
+    print topic_dict
     return topic_dict
 
 
 def poll_topics():
     topic_dict = collect_topics()
     ads = requests.post(kafkadrr, json=json.dumps(topic_dict))
+    print ads
     return ads
 
 
