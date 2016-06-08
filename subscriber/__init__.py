@@ -24,22 +24,23 @@ lookupaddr = 'http://0.0.0.0:5000'
 @app.route('/subscribe/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        latitude = request.args.get('lat')
-        longitude = request.args.get('lon')
-        r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
-        publishregion = r.content
-        app.logger.debug("Region of publisher: " + str(publishregion))
-
-        # request for list of available topics
         r = requests.get(lookupaddr+'/topiclist')
         topiclist = json.loads(r.content)
-
         return render_template('index.html', topiclist=topiclist)
 
     else:
         selectedtopics = request.form.getlist('adcat')
         print selectedtopics
         return "subscribed!"
+
+@app.route('/region')
+def get_region_polygon():
+    latitude = request.args.get('lat')
+    longitude = request.args.get('lon')
+    r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
+    publishregion = r.content
+    app.logger.debug("Region of publisher: " + str(publishregion))
+    return "region-polygon not yet implemented. But got your region"
 
 
 @socketio.on('connect')
