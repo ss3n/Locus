@@ -123,9 +123,9 @@ def messenger():
                                 break
 
 
-def ack(topic):
+def ack(topic, sid):
+    app.logger.debug("Topic recevied is: " + topic)
     with lock:
-        sid = str(request.sid)
         topic = topic.split('_')
         client_dict[sid][topic[0]][topic[1]][1] += 1
 

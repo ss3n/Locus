@@ -102,9 +102,10 @@
             socket.on('connect', function() {
                 sessionId = socket.io.engine.id;
             });
-            socket.on('server-message', function(msg) {
+            socket.on('server-message', function(msg, ack) {
                 console.log('got a server message');
-                $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg+ '</div>');
+                $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.ad+ '</div>');
+                ack(msg.topic, sessionId);
             });
 
             location.search.substr(1).split("&").forEach(function (pair) {
