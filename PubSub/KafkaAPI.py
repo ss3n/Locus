@@ -34,6 +34,9 @@ def poll(topic, offset=0, hostname=None, port_num=None, max_timeout=100):
     consumer = KafkaConsumer(bootstrap_servers=server, group_id=None)
     consumer.assign([topic_partition])
     consumer.seek(topic_partition, offset)
-    msgs = consumer.poll(max_timeout).values()[0]
+    msgs = consumer.poll(max_timeout).values()
     consumer.close()
-    return msgs
+    if len(msgs) > 0:
+        return msgs[0]
+    else:
+        return {}
