@@ -58,7 +58,7 @@ thread = None
 lock = Lock()
 client_dict = dict()
 lookupaddr = 'http://0.0.0.0:5000'
-kafkadrr = 'http://192.168.43.154:5000/poll/'
+kafkadrr = 'http://169.234.64.97:5000/poll/'
 
 
 def collect_topics():
@@ -144,7 +144,9 @@ def index():
 def get_region_polygon():
     with lock:
         latitude = request.args.get('lat')
+        print latitude
         longitude = request.args.get('lon')
+        print longitude
         r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
         publishregion = r.content
         print publishregion
