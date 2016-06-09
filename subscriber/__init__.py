@@ -115,11 +115,19 @@ def messenger():
                         offset = client_dict[sid][interest][region][1]
                         while True:
                             try:
-                                ad = ads[interest+'_'+region][offset]
-                                socketio.emit('server-message', ad, room=sid)
+                                topic = interest+'_'+region
+                                ad = ads[topic][offset]
+                                socketio.emit('server-message', {'topic': topic, 'ad': ad}, room=sid, callback=ack)
                                 offset += 1
                             except KeyError:
                                 break
+
+
+def ack(topic):
+    with lock:
+        sid = str(request.sid)
+        topic = topic.split('_')
+        client_dict[sid][topic[0]][topic[1]][1] += 1
 
 
 @app.route('/subscribe/', methods=['GET', 'POST'])
@@ -201,27 +209,27 @@ def handle_disconnect():
             pass
 
 
-@socketio.on('client-message')
-def handle_client_message(msg):
-    """
-    Custom event name example
-    :param msg:
-    :return:
-    """
-    # emit message on server-message channel and set a callback for handling delivery
-    emit('server-message', ('lele', 'theeke'), callback=ack)
-    app.logger.debug('Client message received: ' + msg)
-    # return acknowledgement: can be processed as args i client callback
-    return 'got it', 'carry on'
+# @socketio.on('client-message')
+# def handle_client_message(msg):
+#     """
+#     Custom event name example
+#     :param msg:
+#     :return:
+#     """
+#     # emit message on server-message channel and set a callback for handling delivery
+#     emit('server-message', ('lele', 'theeke'), callback=ack)
+#     app.logger.debug('Client message received: ' + msg)
+#     # return acknowledgement: can be processed as args i client callback
+#     return 'got it', 'carry on'
 
 
-def ack():
-    """
-    Callback for acknowledging whether
-    client received the message or not
-    :return:
-    """
-    print "ack"
+# def ack():
+#     """
+#     Callback for acknowledging whether
+#     client received the message or not
+#     :return:
+#     """
+#     print "ack"
 
 
 # def messenger():
