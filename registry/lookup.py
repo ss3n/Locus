@@ -18,11 +18,11 @@ def get_topic_list():
 def get_region():
     latitude = request.args.get('lat')
     longitude = request.args.get('lon')
-    name = get_region_name(longitude, latitude)
-    return json.dumps(name)
+    response = get_region_name(longitude, latitude)
+    return json.dumps(response)
 
 
 if __name__ == '__main__':
-    # app.debug = True
+    app.debug = True
     app.run(host="0.0.0.0")
 

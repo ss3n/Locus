@@ -5,7 +5,7 @@ import json
 app = Flask(__name__)
 
 lookupaddr = 'http://0.0.0.0:5000'
-kafkadrr = 'http://192.168.0.38:5000/publish/'
+kafkadrr = 'http://169.234.64.97:5000/publish/'
 
 @app.route('/')
 @app.route('/publish/', methods=['GET', 'POST'])
@@ -15,10 +15,6 @@ def publish():
         latitude = request.args.get('lat')
         longitude = request.args.get('lon')
 
-        # request for region of the advertiser
-        r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
-        publishregion = r.content
-        app.logger.debug("Region of publisher: " + str(publishregion))
 
         # request for list of available topics
         r = requests.get(lookupaddr+'/topiclist')
@@ -31,17 +27,33 @@ def publish():
         selectedtopics = request.form.getlist('adcat')
         adcontent = request.form['content']
 
-        ad = Advertisement(selectedtopics, adcontent)
+
+        latitude = request.args.get('lat')
+        longitude = request.args.get('lon')
+        print latitude
+        print longitude
+
+
+        # request for region of the advertiser
+        r = requests.get(lookupaddr+'/region?lat='+str(latitude)+'&lon='+str(longitude))
+        publishregion = json.loads(r.content)
+        publishregion = publishregion['name']
+        app.logger.debug("Region of publisher: " + str(publishregion))
 
         # app.logger.debug("Ad content: " + str(adcontent))
         # for topic in selectedtopics:
         #     app.logger.debug("Topic: " + topic)
 
+
+        selectedtopics = [topic + '_' + str(publishregion) for topic in selectedtopics]
+        app.logger.debug(selectedtopics)
+        ad = Advertisement(selectedtopics, adcontent)
+
         app.logger.debug(json.dumps(ad.__dict__))
 
-        #r = requests.post(kafkadrr, json=json.dumps(ad.__dict__))
-        #return r.content
-        return "published"
+        r = requests.post(kafkadrr, json=json.dumps(ad.__dict__))
+        return r.content
+        #return "published"
 
 
 if __name__ == '__main__':

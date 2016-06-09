@@ -95,12 +95,24 @@
 
     </div>
     <script>
+        var sessionId = null;
+        location.queryString = {};
         $(document).ready(function(){
             var socket = io.connect();
-            socket.on('server-message', function(msg) {
+            socket.on('connect', function() {
+                sessionId = socket.io.engine.id;
+            });
+            socket.on('server-message', function(msg, ack) {
                 console.log('got a server message');
-                $('#log').append('<p>Received: ' + msg.data + '</p>');
-                $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.data+ '</div>');
+                $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.ad+ '</div>');
+                ack(msg.topic, sessionId);
+            });
+
+            location.search.substr(1).split("&").forEach(function (pair) {
+                if (pair === "") return;
+                var parts = pair.split("=");
+                location.queryString[parts[0]] = parts[1] &&
+                    decodeURIComponent(parts[1].replace(/\+/g, " "));
             });
         });
 
@@ -108,6 +120,10 @@
             e.preventDefault();
             $.ajax({
                 type : 'POST',
+                beforeSend: function(request){
+                    request.setRequestHeader("sid", sessionId);
+                    console.log(sessionId);
+                },
                 data: $("form").serialize(),
                 success : function(data){
                     console.log(data);
@@ -117,6 +133,19 @@
                     });
                     $("#selectedtopics").text(topics.join(", "));
                     $("#myModal").modal("show");
+                    $.ajax({
+                        url: "region",
+                        type: 'GET',
+                        beforeSend: function(request){
+                            request.setRequestHeader("sid", sessionId);
+                            console.log(sessionId);
+                            console.log("Sending GET request to region endpoint");
+                        },
+                        data: {lat:location.queryString['lat'], lon:location.queryString['lon']},
+                        success: function(data){
+                            console.log(data);
+                        }
+                    });
                 }
             });
             return false;
