@@ -116,10 +116,15 @@ def messenger():
                         while True:
                             try:
                                 topic = interest+'_'+region
+                                app.logger.debug('Emitting to server with topic ' + topic)
                                 ad = ads[topic][offset]
+                                # if len(ad) == 0:
+                                #     app.logger.debug('ad length was 0')
+                                #     continue
                                 socketio.emit('server-message', {'topic': topic, 'ad': ad}, room=sid, callback=ack)
                                 offset += 1
                             except KeyError:
+                                app.logger.debug("Key Error Exception happened")
                                 break
 
 
@@ -169,7 +174,7 @@ def get_region_polygon():
             regions = client_dict[sid][interest].keys()
             new_region_exists = False
             for region in regions:
-                if region == publishregion.name:
+                if region == publishregion['name']:
                     new_region_exists = True
                     client_dict[sid][interest][region][0] = True
                 else:

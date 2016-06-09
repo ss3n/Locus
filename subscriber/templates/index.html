@@ -104,8 +104,10 @@
             });
             socket.on('server-message', function(msg, ack) {
                 console.log('got a server message');
-                $('#notifications').append('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.ad+ '</div>');
+                $('#notifications').prepend('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg.ad+ '</div>');
+
                 ack(msg.topic, sessionId);
+                console.log('ack was called with topic: ' + msg.topic + '& session Id: ' + sessionId);
             });
 
             location.search.substr(1).split("&").forEach(function (pair) {
@@ -133,6 +135,7 @@
                     });
                     $("#selectedtopics").text(topics.join(", "));
                     $("#myModal").modal("show");
+                    /*
                     $.ajax({
                         url: "region",
                         type: 'GET',
@@ -146,6 +149,8 @@
                             console.log(data);
                         }
                     });
+                    */
+                    simulation();
                 }
             });
             return false;
@@ -154,6 +159,69 @@
         $("#close-button").click(function(e){
             $("#subscription-form").hide();
         });
+
+        var simulation = function(){
+            console.log("Simulation started")
+
+            var inside = function (point, vs) {
+                // ray-casting algorithm based on
+                // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+
+                var x = point[0], y = point[1];
+
+                var inside = false;
+                for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+                    var xi = vs[i][0], yi = vs[i][1];
+                    var xj = vs[j][0], yj = vs[j][1];
+
+                    var intersect = ((yi > y) != (yj > y))
+                        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                    if (intersect) inside = !inside;
+                }
+
+                return inside;
+            };
+
+            //define a path as a list of coordinates through aldrich park
+            var path = [
+			[-117.841763, 33.646226],
+			[-117.842042, 33.646655],
+			[-117.842450, 33.646316],
+			[-117.843222, 33.645110],
+			[-117.842267, 33.645145],
+			[-117.842321, 33.645538],
+			[-117.841763, 33.646226],
+			[-117.842042, 33.646655],
+			[-117.842450, 33.646316],
+			[-117.843651, 33.646709],
+			[-117.843705, 33.646155],
+			[-117.843833, 33.645942]];
+
+            var pointIndex = 0;
+            var currentPolygon = null;
+            setInterval(function(){
+                var currentPoint = path[pointIndex];
+                pointIndex = pointIndex + 1;
+                if(currentPolygon == null || !inside(currentPoint, currentPolygon)){
+                    //get currentPolygon
+                    $.ajax({
+                        url: "region",
+                        type: 'GET',
+                        beforeSend: function(request){
+                            request.setRequestHeader("sid", sessionId);
+                            console.log(sessionId);
+                            console.log("Sending GET request to region endpoint");
+                        },
+                        data: {lat:currentPoint[1], lon:currentPoint[0]},
+                        success: function(data){
+                            console.log("Region received is next log")
+                            console.log(data);
+                        }
+                    });
+                }
+            }, 10000);
+        }
+
     </script>
 </body>
 </html>
