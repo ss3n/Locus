@@ -4,7 +4,7 @@ Jinja2==2.11.3
 kafka==1.2.0
 MarkupSafe==0.23
 six==1.10.0
-Werkzeug==0.11.10
+Werkzeug==0.15.3
 Flask-SocketIO==2.3
 python-engineio==0.9.1
 python-socketio==1.3
